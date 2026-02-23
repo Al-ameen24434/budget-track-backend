@@ -8,6 +8,7 @@ import { config } from 'dotenv';
 import { connectDatabase } from './config/database';
 import { errorHandler } from './middleware/error.middleware';
 import { logger } from './utils/logger';
+import { setupSwagger } from './docs/swagger'
 
 // Load environment variables
 config();
@@ -60,6 +61,10 @@ app.use(`${apiPrefix}/transactions`, transactionRoutes);
 app.use(`${apiPrefix}/categories`, categoryRoutes);
 app.use(`${apiPrefix}/budgets`, budgetRoutes);
 app.use(`${apiPrefix}/analytics`, analyticsRoutes);
+
+if (process.env.NODE_ENV === 'development') {
+  setupSwagger(app);
+}
 
 // Health check endpoint
 app.get('/health', (req, res) => {
