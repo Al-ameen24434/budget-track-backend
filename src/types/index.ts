@@ -1,4 +1,4 @@
-import { Types } from 'mongoose';
+import { Types } from "mongoose";
 
 // User types
 export interface IUser {
@@ -28,11 +28,16 @@ export interface ITransaction {
   category: string;
   description: string;
   amount: number;
-  type: 'income' | 'expense';
-  paymentMethod?: 'cash' | 'card' | 'bank_transfer' | 'digital_wallet' | 'other';
+  type: "income" | "expense";
+  paymentMethod?:
+    | "cash"
+    | "card"
+    | "bank_transfer"
+    | "digital_wallet"
+    | "other";
   tags?: string[];
   recurring?: boolean;
-  recurringFrequency?: 'daily' | 'weekly' | 'monthly' | 'yearly';
+  recurringFrequency?: "daily" | "weekly" | "monthly" | "yearly";
   notes?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -44,7 +49,7 @@ export interface TransactionResponse {
   category: string;
   description: string;
   amount: number;
-  type: 'income' | 'expense';
+  type: "income" | "expense";
   paymentMethod?: string;
   tags?: string[];
   recurring?: boolean;
@@ -55,7 +60,7 @@ export interface TransactionResponse {
 }
 
 export interface TransactionFilters {
-  type?: 'income' | 'expense';
+  type?: "income" | "expense";
   category?: string;
   startDate?: Date;
   endDate?: Date;
@@ -74,7 +79,7 @@ export interface ICategory {
   name: string;
   icon: string;
   color: string;
-  type: 'income' | 'expense' | 'both';
+  type: "income" | "expense" | "both";
   budget?: number;
   isDefault: boolean;
   createdAt: Date;
@@ -86,7 +91,7 @@ export interface CategoryResponse {
   name: string;
   icon: string;
   color: string;
-  type: 'income' | 'expense' | 'both';
+  type: "income" | "expense" | "both";
   budget?: number;
   isDefault: boolean;
   createdAt: Date;
@@ -213,13 +218,13 @@ export interface ValidationError {
 
 // Import/Export types
 export interface ImportRequest {
-  format: 'csv' | 'json';
+  format: "csv" | "json";
   data: string;
   mappings?: Record<string, string>;
 }
 
 export interface ExportRequest {
-  format: 'csv' | 'json' | 'pdf';
+  format: "csv" | "json" | "pdf";
   filters?: TransactionFilters;
   includeSummary?: boolean;
 }
@@ -241,4 +246,8 @@ export interface UserSettings {
   monthlyReport: boolean;
   budgetAlerts: boolean;
   overspendThreshold: number;
+}
+
+export interface JwtPayloads {
+  id: string;
 }
