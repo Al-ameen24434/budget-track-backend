@@ -11,12 +11,12 @@ export const validateRequest = (
     return res.status(400).json({
       success: false,
       errors: errors.array().map((err) => ({
-        field: err.param,
+        field: "param" in err ? err.param : "unknown",
         message: err.msg,
       })),
     });
   }
-  next();
+  return next();
 };
 
 export const transactionValidators = [
@@ -36,6 +36,6 @@ export const transactionValidators = [
       });
     }
 
-    next();
+    return next();
   },
 ];
