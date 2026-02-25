@@ -1,11 +1,11 @@
-import { Transaction, ITransaction } from '../models/transaction.model';
-import { Category } from '../models/category.model';
-import { Types } from 'mongoose';
-import { logger } from '../utils/logger';
+import { Transaction, ITransaction } from "../models/transaction.model";
+import { Category } from "../models/category.model";
+import { Types } from "mongoose";
+import { logger } from "../utils/logger";
 
 interface TransactionFilter {
   userId: Types.ObjectId;
-  type?: 'income' | 'expense';
+  type?: "income" | "expense";
   category?: string;
   startDate?: Date;
   endDate?: Date;
@@ -23,8 +23,8 @@ interface PaginationOptions {
 export class TransactionService {
   static async getTransactions(
     filter: TransactionFilter,
-    options: PaginationOptions
-  ) {
+    options: PaginationOptions,
+  ): Promise<any> {
     try {
       const query: any = { userId: filter.userId };
 
@@ -46,9 +46,9 @@ export class TransactionService {
 
       if (filter.search) {
         query.$or = [
-          { description: { $regex: filter.search, $options: 'i' } },
-          { category: { $regex: filter.search, $options: 'i' } },
-          { notes: { $regex: filter.search, $options: 'i' } },
+          { description: { $regex: filter.search, $options: "i" } },
+          { category: { $regex: filter.search, $options: "i" } },
+          { notes: { $regex: filter.search, $options: "i" } },
         ];
       }
 
@@ -84,7 +84,7 @@ export class TransactionService {
 
   static async getTransactionById(
     transactionId: string,
-    userId: Types.ObjectId
+    userId: Types.ObjectId,
   ) {
     try {
       const transaction = await Transaction.findOne({
@@ -93,7 +93,7 @@ export class TransactionService {
       });
 
       if (!transaction) {
-        throw new Error('Transaction not found');
+        throw new Error("Transaction not found");
       }
 
       return transaction;
@@ -105,7 +105,7 @@ export class TransactionService {
 
   static async createTransaction(
     transactionData: Partial<ITransaction>,
-    userId: Types.ObjectId
+    userId: Types.ObjectId,
   ) {
     try {
       // Check if category exists
@@ -115,7 +115,7 @@ export class TransactionService {
       });
 
       if (!categoryExists) {
-        throw new Error('Category does not exist. Please create it first.');
+        throw new Error("Category does not exist. Please create it first.");
       }
 
       // Create transaction
@@ -136,7 +136,7 @@ export class TransactionService {
   static async updateTransaction(
     transactionId: string,
     updateData: Partial<ITransaction>,
-    userId: Types.ObjectId
+    userId: Types.ObjectId,
   ) {
     try {
       // Check if transaction exists
@@ -146,7 +146,7 @@ export class TransactionService {
       });
 
       if (!existingTransaction) {
-        throw new Error('Transaction not found');
+        throw new Error("Transaction not found");
       }
 
       // Update transaction
@@ -156,7 +156,7 @@ export class TransactionService {
         {
           new: true,
           runValidators: true,
-        }
+        },
       );
 
       logger.info(`Transaction updated: ${transactionId}`);
@@ -170,7 +170,7 @@ export class TransactionService {
 
   static async deleteTransaction(
     transactionId: string,
-    userId: Types.ObjectId
+    userId: Types.ObjectId,
   ) {
     try {
       // Check if transaction exists
@@ -180,7 +180,7 @@ export class TransactionService {
       });
 
       if (!transaction) {
-        throw new Error('Transaction not found');
+        throw new Error("Transaction not found");
       }
 
       await transaction.deleteOne();
@@ -196,11 +196,11 @@ export class TransactionService {
 
   static async bulkCreateTransactions(
     transactions: Partial<ITransaction>[],
-    userId: Types.ObjectId
-  ) {
+    userId: Types.ObjectId,
+  ): Promise<any> {
     try {
       if (!Array.isArray(transactions) || transactions.length === 0) {
-        throw new Error('Please provide an array of transactions');
+        throw new Error("Please provide an array of transactions");
       }
 
       // Add userId to each transaction
@@ -210,7 +210,7 @@ export class TransactionService {
       }));
 
       const createdTransactions = await Transaction.insertMany(
-        transactionsWithUserId
+        transactionsWithUserId,
       );
 
       logger.info(`Bulk created ${createdTransactions.length} transactions`);
@@ -230,10 +230,10 @@ export class TransactionService {
           $group: {
             _id: null,
             totalIncome: {
-              $sum: { $cond: [{ $eq: ['$type', 'income'] }, '$amount', 0] },
+              $sum: { $cond: [{ $eq: ["$type", "income"] }, "$amount", 0] },
             },
             totalExpenses: {
-              $sum: { $cond: [{ $eq: ['$type', 'expense'] }, '$amount', 0] },
+              $sum: { $cond: [{ $eq: ["$type", "expense"] }, "$amount", 0] },
             },
             count: { $sum: 1 },
           },
@@ -249,7 +249,7 @@ export class TransactionService {
 
   static async getRecentTransactions(
     userId: Types.ObjectId,
-    limit: number = 10
+    limit: number = 10,
   ) {
     try {
       const transactions = await Transaction.find({ userId })
