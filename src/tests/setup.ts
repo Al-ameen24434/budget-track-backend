@@ -1,12 +1,17 @@
-import mongoose from 'mongoose';
-import { connectDatabase, disconnectDatabase } from '../src/config/database';
-import { logger } from '../src/utils/logger';
+import mongoose from "mongoose";
+import { connectDatabase, disconnectDatabase } from "../config/database";
+import { logger } from "../utils/logger";
+
+// Extend global type
+declare global {
+  function cleanup(): Promise<void>;
+}
 
 // Disable logging during tests
 logger.silent = true;
 
 // Set test environment
-process.env.NODE_ENV = 'test';
+process.env.NODE_ENV = "test";
 
 beforeAll(async () => {
   await connectDatabase();
@@ -25,7 +30,7 @@ afterEach(async () => {
 });
 
 // Global test helpers
-global.cleanup = async () => {
+globalThis.cleanup = async () => {
   const collections = mongoose.connection.collections;
   for (const key in collections) {
     await collections[key].deleteMany({});
