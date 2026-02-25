@@ -1,7 +1,7 @@
-import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
-import { User } from '../models/user.model';
-import { asyncHandler } from '../utils/helpers';
+import { Request, Response, NextFunction } from "express";
+import jwt from "jsonwebtoken";
+import { User } from "../models/user.model";
+import { asyncHandler } from "../utils/helpers";
 
 interface AuthRequest extends Request {
   user?: any;
@@ -14,9 +14,9 @@ export const protect = asyncHandler(
 
     if (
       req.headers.authorization &&
-      req.headers.authorization.startsWith('Bearer')
+      req.headers.authorization.startsWith("Bearer")
     ) {
-      token = req.headers.authorization.split(' ')[1];
+      token = req.headers.authorization.split(" ")[1];
     } else if (req.cookies?.token) {
       token = req.cookies.token;
     }
@@ -24,7 +24,7 @@ export const protect = asyncHandler(
     if (!token) {
       return res.status(401).json({
         success: false,
-        message: 'Not authorized to access this route',
+        message: "Not authorized to access this route",
       });
     }
 
@@ -35,23 +35,23 @@ export const protect = asyncHandler(
       };
 
       // Get user from token
-      req.user = await User.findById(decoded.id).select('-password');
+      req.user = await User.findById(decoded.id).select("-password");
 
       if (!req.user) {
         return res.status(401).json({
           success: false,
-          message: 'User not found',
+          message: "User not found",
         });
       }
 
-      next();
+      return next();
     } catch (error) {
       return res.status(401).json({
         success: false,
-        message: 'Not authorized to access this route',
+        message: "Not authorized to access this route",
       });
     }
-  }
+  },
 );
 
 // Grant access to specific roles
@@ -63,6 +63,6 @@ export const authorize = (...roles: string[]) => {
         message: `User role ${req.user.role} is not authorized to access this route`,
       });
     }
-    next();
+    return next();
   };
 };
