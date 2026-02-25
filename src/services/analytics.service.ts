@@ -113,7 +113,6 @@ export class AnalyticsService {
   ): Promise<SpendingTrend[]> {
     const now = new Date();
     let groupFormat: any;
-    let periods: string[] = [];
 
     switch (period) {
       case 'week':
