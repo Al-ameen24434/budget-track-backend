@@ -30,6 +30,7 @@ if (process.env.NODE_ENV === "development") {
   setupSwagger(app);
 }
 
+
 // Connect to database
 connectDatabase();
 
@@ -44,6 +45,10 @@ const corsOptions = {
 app.use(cors(corsOptions));
 log.middleware(`✓ CORS middleware registered with origin: ${corsOptions.origin}`);
 
+if (process.env.NODE_ENV === "development") {
+  setupSwagger(app);
+}
+
 // Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -51,6 +56,7 @@ const limiter = rateLimit({
   message: "Too many requests from this IP, please try again later.",
 });
 app.use("/api/", limiter);
+log.middleware('✓ Rate limiting middleware registered');
 
 // Body parsing middleware
 app.use(express.json({ limit: "10mb" }));
