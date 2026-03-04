@@ -5,14 +5,28 @@ import { Category } from "../src/models/category.model";
 import { Transaction } from "../src/models/transaction.model";
 import { Budget } from "../src/models/budget.model";
 import { logger } from "../src/utils/logger";
+import { log } from "../src/utils/debug";
 
 dotenv.config();
 
+// ensure DEBUG output when running seed
+if (!process.env.DEBUG) {
+  log.app("enable seed debug");
+  log.app.enabled = true;
+}
+
 const seedDatabase = async () => {
   try {
+    const uri = process.env.MONGODB_URI;
+    if (!uri) {
+      throw new Error("MONGODB_URI environment variable is not set");
+    }
+
+    log.db("attempting connection to", uri);
     // Connect to database
-    await mongoose.connect(process.env.MONGODB_URI!);
+    await mongoose.connect(uri, { maxPoolSize: 5 });
     logger.info("Connected to database for seeding");
+    log.db("database connection successful");
 
     // Clear existing data
     await Promise.all([
@@ -245,6 +259,7 @@ const seedDatabase = async () => {
 
     await Transaction.insertMany(transactions);
     logger.info(`Created ${transactions.length} sample transactions`);
+    log.transaction("sample transactions inserted");
 
     // Create sample budget for current month
     const currentMonth = new Date(
@@ -273,14 +288,21 @@ const seedDatabase = async () => {
     );
 
     logger.info("Database seeding completed successfully!");
+    log.app("seed finished, disconnecting");
     logger.info(`Test user credentials:
       Email: test@example.com
       Password: password123
     `);
 
+    await mongoose.disconnect();
+    logger.info("Disconnected from database");
     process.exit(0);
   } catch (error) {
     logger.error("Error seeding database:", error);
+    log.error("seed failed", error);
+    try {
+      await mongoose.disconnect();
+    } catch {}
     process.exit(1);
   }
 };
