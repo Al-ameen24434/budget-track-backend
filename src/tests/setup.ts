@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import { connectDatabase, disconnectDatabase } from "../config/database";
 import { logger } from "../utils/logger";
+import debug from "debug";
 
 // Extend global type
 declare global {
@@ -9,6 +10,9 @@ declare global {
 
 // Disable logging during tests
 logger.silent = true;
+
+// Disable debug output entirely (in case DEBUG env is set)
+debug.disable();
 
 // Set test environment
 process.env.NODE_ENV = "test";
