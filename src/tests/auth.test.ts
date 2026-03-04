@@ -4,9 +4,7 @@ import { User } from "../models/user.model";
 import { disconnectDatabase } from "../config/database";
 
 describe("Auth API", () => {
-  beforeAll(async () => {
-    // Connect to test database
-  });
+  // database connection is handled by setup.ts
 
   afterAll(async () => {
     await disconnectDatabase();

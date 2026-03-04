@@ -9,6 +9,7 @@ import { connectDatabase } from "./config/database";
 import { errorHandler } from "./middleware/error.middleware";
 import { logger } from "./utils/logger";
 import { setupSwagger } from "./docs/swagger";
+import { log, logRequest, logResponse } from './utils/debug';
 
 // Load environment variables
 config();
@@ -22,21 +23,31 @@ import analyticsRoutes from "./routes/analytics.routes";
 
 const app = express();
 
+// Log middleware registration
+log.middleware('Registering middleware...');
+
 if (process.env.NODE_ENV === "development") {
   setupSwagger(app);
 }
+
 
 // Connect to database
 connectDatabase();
 
 // Security middleware
 app.use(helmet());
-app.use(
-  cors({
-    origin: process.env.CORS_ORIGIN || "http://localhost:3000",
-    credentials: true,
-  }),
-);
+log.middleware('✓ Helmet middleware registered');
+// CORS configuration
+const corsOptions = {
+  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+  credentials: true,
+};
+app.use(cors(corsOptions));
+log.middleware(`✓ CORS middleware registered with origin: ${corsOptions.origin}`);
+
+if (process.env.NODE_ENV === "development") {
+  setupSwagger(app);
+}
 
 // Rate limiting
 const limiter = rateLimit({
@@ -45,6 +56,7 @@ const limiter = rateLimit({
   message: "Too many requests from this IP, please try again later.",
 });
 app.use("/api/", limiter);
+log.middleware('✓ Rate limiting middleware registered');
 
 // Body parsing middleware
 app.use(express.json({ limit: "10mb" }));
