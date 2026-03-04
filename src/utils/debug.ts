@@ -20,14 +20,14 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 // Color coding for different modules
-log.app.color = 1;    // red
-log.db.color = 4;     // blue
-log.auth.color = 3;   // yellow
-log.routes.color = 2; // green
-log.error.color = 1;  // red
+log.app.color = '1';    // red
+log.db.color = '4';     // blue
+log.auth.color = '3';   // yellow
+log.routes.color = '2'; // green
+log.error.color = '1';  // red
 
 // Helper to log request details
-export const logRequest = (req: any, res: any, next: any) => {
+export const logRequest = (req: any, __res: any, next: any) => {
   log.routes(`${req.method} ${req.path}`);
   log.routes('Headers:', req.headers);
   log.routes('Query:', req.query);
@@ -56,7 +56,7 @@ export const logPerformance = (label: string) => {
       const duration = Date.now() - start;
       log.app(`${label} took ${duration}ms`);
       if (duration > 1000) {
-        log.app.warn(`${label} is slow (${duration}ms)`);
+        log.error(`${label} is slow (${duration}ms)`);
       }
     }
   };
