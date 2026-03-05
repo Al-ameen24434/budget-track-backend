@@ -2,6 +2,7 @@ import { Transaction, ITransaction } from "../models/transaction.model";
 import { Category } from "../models/category.model";
 import { Types } from "mongoose";
 import { logger } from "../utils/logger";
+import { log } from "../utils/debug";
 
 interface TransactionFilter {
   userId: Types.ObjectId;
@@ -26,6 +27,7 @@ export class TransactionService {
     options: PaginationOptions,
   ): Promise<any> {
     try {
+      log.transaction("getTransactions filter", filter);
       const query: any = { userId: filter.userId };
 
       // Apply filters
@@ -87,6 +89,7 @@ export class TransactionService {
     userId: Types.ObjectId,
   ) {
     try {
+      log.transaction("getTransactionById", { transactionId, userId });
       const transaction = await Transaction.findOne({
         _id: transactionId,
         userId,
@@ -108,6 +111,7 @@ export class TransactionService {
     userId: Types.ObjectId,
   ) {
     try {
+      log.transaction("createTransaction", transactionData);
       // Check if category exists
       const categoryExists = await Category.findOne({
         name: transactionData.category,
@@ -139,6 +143,7 @@ export class TransactionService {
     userId: Types.ObjectId,
   ) {
     try {
+      log.transaction("updateTransaction", { transactionId, updateData });
       // Check if transaction exists
       const existingTransaction = await Transaction.findOne({
         _id: transactionId,
@@ -173,6 +178,7 @@ export class TransactionService {
     userId: Types.ObjectId,
   ) {
     try {
+      log.transaction("deleteTransaction", { transactionId, userId });
       // Check if transaction exists
       const transaction = await Transaction.findOne({
         _id: transactionId,
