@@ -1,15 +1,17 @@
-import { Budget, IBudget } from '../models/budget.model';
-import { Transaction } from '../models/transaction.model';
-import { Types } from 'mongoose';
-import { logger } from '../utils/logger';
+import { Budget, IBudget } from "../models/budget.model";
+import { Transaction } from "../models/transaction.model";
+import { Types } from "mongoose";
+import { logger } from "../utils/logger";
+import { log } from "../utils/debug";
 
 export class BudgetService {
   static async getBudgets(
     userId: Types.ObjectId,
     page: number = 1,
-    limit: number = 10
+    limit: number = 10,
   ) {
     try {
+      log.budget("getBudgets", { userId, page, limit });
       const skip = (page - 1) * limit;
 
       const [budgets, total] = await Promise.all([
@@ -42,7 +44,7 @@ export class BudgetService {
       });
 
       if (!budget) {
-        throw new Error('Budget not found');
+        throw new Error("Budget not found");
       }
 
       return budget;
@@ -54,8 +56,13 @@ export class BudgetService {
 
   static async getCurrentBudget(userId: Types.ObjectId) {
     try {
-      const currentMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
-      
+      log.budget("getCurrentBudget", { userId });
+      const currentMonth = new Date(
+        new Date().getFullYear(),
+        new Date().getMonth(),
+        1,
+      );
+
       const budget = await Budget.findOne({
         userId,
         month: { $lte: currentMonth },
@@ -66,26 +73,36 @@ export class BudgetService {
       }
 
       // Calculate actual spending for each category
-      const startOfMonth = new Date(budget.month.getFullYear(), budget.month.getMonth(), 1);
-      const endOfMonth = new Date(budget.month.getFullYear(), budget.month.getMonth() + 1, 0);
+      const startOfMonth = new Date(
+        budget.month.getFullYear(),
+        budget.month.getMonth(),
+        1,
+      );
+      const endOfMonth = new Date(
+        budget.month.getFullYear(),
+        budget.month.getMonth() + 1,
+        0,
+      );
 
       const actualSpending = await Transaction.aggregate([
         {
           $match: {
             userId,
-            type: 'expense',
+            type: "expense",
             date: { $gte: startOfMonth, $lte: endOfMonth },
           },
         },
         {
           $group: {
-            _id: '$category',
-            spent: { $sum: { $abs: '$amount' } },
+            _id: "$category",
+            spent: { $sum: { $abs: "$amount" } },
           },
         },
       ]);
 
-      const spendingMap = new Map(actualSpending.map((item) => [item._id, item.spent]));
+      const spendingMap = new Map(
+        actualSpending.map((item) => [item._id, item.spent]),
+      );
 
       // Calculate budget progress
       const updatedCategoryBudgets = budget.categoryBudgets.map((catBudget) => {
@@ -95,16 +112,19 @@ export class BudgetService {
           budget: catBudget.budget,
           spent,
           remaining: catBudget.budget - spent,
-          percentage: catBudget.budget > 0 ? (spent / catBudget.budget) * 100 : 0,
+          percentage:
+            catBudget.budget > 0 ? (spent / catBudget.budget) * 100 : 0,
           overspent: spent > catBudget.budget,
         };
       });
 
-      const totalSpent = updatedCategoryBudgets.reduce((sum, cat) => sum + cat.spent, 0);
+      const totalSpent = updatedCategoryBudgets.reduce(
+        (sum, cat) => sum + cat.spent,
+        0,
+      );
       const totalRemaining = budget.totalBudget - totalSpent;
-      const totalPercentage = budget.totalBudget > 0 
-        ? (totalSpent / budget.totalBudget) * 100 
-        : 0;
+      const totalPercentage =
+        budget.totalBudget > 0 ? (totalSpent / budget.totalBudget) * 100 : 0;
 
       return {
         ...budget.toObject(),
@@ -115,13 +135,18 @@ export class BudgetService {
         overspent: totalSpent > budget.totalBudget,
       };
     } catch (error) {
+      log.error("getCurrentBudget error", error);
       logger.error(`Get current budget error: ${error}`);
       throw error;
     }
   }
 
-  static async createBudget(budgetData: Partial<IBudget>, userId: Types.ObjectId) {
+  static async createBudget(
+    budgetData: Partial<IBudget>,
+    userId: Types.ObjectId,
+  ) {
     try {
+      log.budget("createBudget", { budgetData, userId });
       // Check if budget already exists for this month
       const existingBudget = await Budget.findOne({
         userId,
@@ -129,17 +154,16 @@ export class BudgetService {
       });
 
       if (existingBudget) {
-        throw new Error('Budget already exists for this month');
+        throw new Error("Budget already exists for this month");
       }
 
       // Validate that total budget equals sum of category budgets
-      const totalCategoryBudget = budgetData.categoryBudgets?.reduce(
-        (sum, cat) => sum + cat.budget,
-        0
-      ) || 0;
+      const totalCategoryBudget =
+        budgetData.categoryBudgets?.reduce((sum, cat) => sum + cat.budget, 0) ||
+        0;
 
       if (totalCategoryBudget !== budgetData.totalBudget) {
-        throw new Error('Total budget must equal the sum of category budgets');
+        throw new Error("Total budget must equal the sum of category budgets");
       }
 
       const budget = await Budget.create({
@@ -148,6 +172,7 @@ export class BudgetService {
       });
 
       logger.info(`Budget created for month: ${budget.month}`);
+      log.budget("Budget created successfully", { budgetId: budget._id });
 
       return budget;
     } catch (error) {
@@ -159,9 +184,10 @@ export class BudgetService {
   static async updateBudget(
     budgetId: string,
     updateData: Partial<IBudget>,
-    userId: Types.ObjectId
+    userId: Types.ObjectId,
   ) {
     try {
+      log.budget("updateBudget", { budgetId, updateData, userId });
       // Check if budget exists
       const existingBudget = await Budget.findOne({
         _id: budgetId,
@@ -169,7 +195,7 @@ export class BudgetService {
       });
 
       if (!existingBudget) {
-        throw new Error('Budget not found');
+        throw new Error("Budget not found");
       }
 
       // If updating month, check if budget already exists for new month
@@ -181,7 +207,7 @@ export class BudgetService {
         });
 
         if (duplicateBudget) {
-          throw new Error('Budget already exists for this month');
+          throw new Error("Budget already exists for this month");
         }
       }
 
@@ -189,22 +215,20 @@ export class BudgetService {
       if (updateData.categoryBudgets && updateData.totalBudget) {
         const totalCategoryBudget = updateData.categoryBudgets.reduce(
           (sum, cat) => sum + cat.budget,
-          0
+          0,
         );
 
         if (totalCategoryBudget !== updateData.totalBudget) {
-          throw new Error('Total budget must equal the sum of category budgets');
+          throw new Error(
+            "Total budget must equal the sum of category budgets",
+          );
         }
       }
 
-      const budget = await Budget.findByIdAndUpdate(
-        budgetId,
-        updateData,
-        {
-          new: true,
-          runValidators: true,
-        }
-      );
+      const budget = await Budget.findByIdAndUpdate(budgetId, updateData, {
+        new: true,
+        runValidators: true,
+      });
 
       logger.info(`Budget updated: ${budgetId}`);
 
@@ -223,7 +247,7 @@ export class BudgetService {
       });
 
       if (!budget) {
-        throw new Error('Budget not found');
+        throw new Error("Budget not found");
       }
 
       await budget.deleteOne();
@@ -239,14 +263,16 @@ export class BudgetService {
 
   static async getBudgetOverview(userId: Types.ObjectId) {
     try {
-      const currentMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
-      
+      log.budget("getBudgetOverview", { userId });
+      const currentMonth = new Date(
+        new Date().getFullYear(),
+        new Date().getMonth(),
+        1,
+      );
+
       const [currentBudget, lastThreeBudgets] = await Promise.all([
         this.getCurrentBudget(userId),
-        Budget.find({ userId })
-          .sort({ month: -1 })
-          .limit(3)
-          .lean(),
+        Budget.find({ userId }).sort({ month: -1 }).limit(3).lean(),
       ]);
 
       // Calculate monthly trends
@@ -255,30 +281,38 @@ export class BudgetService {
           $match: {
             userId,
             date: {
-              $gte: new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 5, 1),
-              $lte: new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0),
+              $gte: new Date(
+                currentMonth.getFullYear(),
+                currentMonth.getMonth() - 5,
+                1,
+              ),
+              $lte: new Date(
+                currentMonth.getFullYear(),
+                currentMonth.getMonth() + 1,
+                0,
+              ),
             },
           },
         },
         {
           $group: {
             _id: {
-              year: { $year: '$date' },
-              month: { $month: '$date' },
-              type: '$type',
+              year: { $year: "$date" },
+              month: { $month: "$date" },
+              type: "$type",
             },
-            amount: { $sum: { $abs: '$amount' } },
+            amount: { $sum: { $abs: "$amount" } },
           },
         },
-        { $sort: { '_id.year': 1, '_id.month': 1 } },
+        { $sort: { "_id.year": 1, "_id.month": 1 } },
       ]);
 
       const incomeTrends: Record<string, number> = {};
       const expenseTrends: Record<string, number> = {};
 
       monthlyTrends.forEach((trend) => {
-        const monthKey = `${trend._id.year}-${trend._id.month.toString().padStart(2, '0')}`;
-        if (trend._id.type === 'income') {
+        const monthKey = `${trend._id.year}-${trend._id.month.toString().padStart(2, "0")}`;
+        if (trend._id.type === "income") {
           incomeTrends[monthKey] = trend.amount;
         } else {
           expenseTrends[monthKey] = trend.amount;
@@ -294,6 +328,7 @@ export class BudgetService {
         },
       };
     } catch (error) {
+      log.error("getBudgetOverview error", error);
       logger.error(`Get budget overview error: ${error}`);
       throw error;
     }

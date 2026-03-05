@@ -3,6 +3,7 @@ import jwt, { SignOptions } from "jsonwebtoken";
 import { User } from "../models/user.model";
 import { logger } from "../utils/logger";
 import { asyncHandler } from "../utils/helpers";
+import { log } from "../utils/debug";
 import type { StringValue } from "ms";
 
 interface AuthRequest extends Request {
@@ -57,10 +58,11 @@ const sendTokenResponse = (user: any, statusCode: number, res: Response) => {
 // @access  Public
 export const register = asyncHandler(async (req: Request, res: Response) => {
   const { name, email, password, currency } = req.body;
-
+  log.auth("register attempt", { email });
   // Check if user exists
   const existingUser = await User.findOne({ email });
   if (existingUser) {
+    log.auth("register failed - email already exists", { email });
     return res.status(400).json({
       success: false,
       message: "User already exists with this email",
@@ -76,6 +78,7 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
   });
 
   logger.info(`New user registered: ${user.email}`);
+  log.auth("user registered", { email: user.email });
 
   return sendTokenResponse(user, 201, res);
 });
@@ -87,7 +90,9 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
   // Validate email & password
+  log.auth("login attempt", { email });
   if (!email || !password) {
+    log.auth("login failed - missing credentials");
     return res.status(400).json({
       success: false,
       message: "Please provide email and password",
@@ -113,6 +118,7 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
   }
 
   logger.info(`User logged in: ${user.email}`);
+  log.auth("user logged in", { email: user.email });
 
   return sendTokenResponse(user, 200, res);
 });

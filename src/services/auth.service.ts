@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { User } from "../models/user.model";
 import { asyncHandler } from "../utils/helpers";
+import { log } from "../utils/debug";
 
 interface AuthRequest extends Request {
   user?: any;
@@ -29,6 +30,7 @@ export const protect = asyncHandler(
     }
 
     try {
+      log.auth("Verifying JWT token");
       // Verify token
       const decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
         id: string;

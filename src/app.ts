@@ -9,7 +9,7 @@ import { connectDatabase } from "./config/database";
 import { errorHandler } from "./middleware/error.middleware";
 import { logger } from "./utils/logger";
 import { setupSwagger } from "./docs/swagger";
-import { log, logRequest, logResponse } from './utils/debug';
+import { log, logRequest, logResponse } from "./utils/debug";
 
 // Load environment variables
 config();
@@ -24,26 +24,27 @@ import analyticsRoutes from "./routes/analytics.routes";
 const app = express();
 
 // Log middleware registration
-log.middleware('Registering middleware...');
+log.middleware("Registering middleware...");
 
 if (process.env.NODE_ENV === "development") {
   setupSwagger(app);
 }
-
 
 // Connect to database
 connectDatabase();
 
 // Security middleware
 app.use(helmet());
-log.middleware('✓ Helmet middleware registered');
+log.middleware("✓ Helmet middleware registered");
 // CORS configuration
 const corsOptions = {
-  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+  origin: process.env.CORS_ORIGIN || "http://localhost:5000",
   credentials: true,
 };
 app.use(cors(corsOptions));
-log.middleware(`✓ CORS middleware registered with origin: ${corsOptions.origin}`);
+log.middleware(
+  `✓ CORS middleware registered with origin: ${corsOptions.origin}`,
+);
 
 if (process.env.NODE_ENV === "development") {
   setupSwagger(app);
@@ -56,7 +57,7 @@ const limiter = rateLimit({
   message: "Too many requests from this IP, please try again later.",
 });
 app.use("/api/", limiter);
-log.middleware('✓ Rate limiting middleware registered');
+log.middleware("✓ Rate limiting middleware registered");
 
 // Body parsing middleware
 app.use(express.json({ limit: "10mb" }));
@@ -65,10 +66,18 @@ app.use(cookieParser());
 app.use(compression());
 
 // Request logging
+// general logger (winston) for high‑level info
 app.use((req, _res, next) => {
   logger.info(`${req.method} ${req.path}`);
   next();
 });
+
+// Debug helpers – only enable detailed request/response
+// output when development or DEBUG is set.
+if (process.env.NODE_ENV === "development" || process.env.DEBUG) {
+  app.use(logRequest);
+  app.use(logResponse);
+}
 
 // API Routes
 const apiPrefix = process.env.API_PREFIX || "/api/v1";
