@@ -3,6 +3,7 @@ import { Transaction } from "../models/transaction.model";
 import { Category } from "../models/category.model";
 import { asyncHandler } from "../utils/helpers";
 import { logger } from "../utils/logger";
+import { log } from "../utils/debug";
 
 interface AuthRequest extends Request {
   user?: any;
@@ -25,6 +26,10 @@ export const getTransactions = asyncHandler(
       maxAmount,
       search,
     } = req.query;
+    log.transaction("getTransactions request", {
+      query: req.query,
+      user: req.user.id,
+    });
 
     // Build query
     const query: any = { userId: req.user.id };
@@ -140,6 +145,7 @@ export const getTransaction = asyncHandler(
 export const createTransaction = asyncHandler(
   async (req: AuthRequest, res: Response) => {
     // Check if category exists for user
+    log.transaction("createTransaction", { body: req.body, user: req.user.id });
     const categoryExists = await Category.findOne({
       name: req.body.category,
       userId: req.user.id,
@@ -171,6 +177,11 @@ export const createTransaction = asyncHandler(
 // @access  Private
 export const updateTransaction = asyncHandler(
   async (req: AuthRequest, res: Response) => {
+    log.transaction("updateTransaction", {
+      id: req.params.id,
+      body: req.body,
+      user: req.user.id,
+    });
     let transaction = await Transaction.findOne({
       _id: req.params.id,
       userId: req.user.id,
@@ -240,11 +251,14 @@ export const bulkCreateTransactions = asyncHandler(
     }
 
     // Add userId to each transaction
+    log.transaction("bulkCreateTransactions", {
+      count: transactions.length,
+      user: req.user.id,
+    });
     const transactionsWithUserId = transactions.map((transaction) => ({
       ...transaction,
       userId: req.user.id,
     }));
-
     const createdTransactions = await Transaction.insertMany(
       transactionsWithUserId,
     );
