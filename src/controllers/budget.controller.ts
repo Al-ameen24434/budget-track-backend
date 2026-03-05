@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { BudgetService } from "../services/budget.service";
 import { asyncHandler } from "../utils/helpers";
+import { log } from "../utils/debug";
 
 interface AuthRequest extends Request {
   user?: any;
@@ -12,6 +13,7 @@ interface AuthRequest extends Request {
 export const getBudgets = asyncHandler(
   async (req: AuthRequest, res: Response) => {
     const { page = 1, limit = 10 } = req.query;
+    log.budget("getBudgets request", { query: req.query, user: req.user.id });
 
     const result = await BudgetService.getBudgets(
       req.user.id,
@@ -38,6 +40,7 @@ export const getBudgets = asyncHandler(
 // @access  Private
 export const getBudget = asyncHandler(
   async (req: AuthRequest, res: Response) => {
+    log.budget("getBudget", { id: req.params.id, user: req.user.id });
     const budget = await BudgetService.getBudgetById(
       req.params.id,
       req.user.id,
@@ -55,6 +58,7 @@ export const getBudget = asyncHandler(
 // @access  Private
 export const getCurrentBudget = asyncHandler(
   async (req: AuthRequest, res: Response) => {
+    log.budget("getCurrentBudget", { user: req.user.id });
     const budget = await BudgetService.getCurrentBudget(req.user.id);
 
     if (!budget) {
@@ -76,6 +80,7 @@ export const getCurrentBudget = asyncHandler(
 // @access  Private
 export const createBudget = asyncHandler(
   async (req: AuthRequest, res: Response) => {
+    log.budget("createBudget", { body: req.body, user: req.user.id });
     const budget = await BudgetService.createBudget(req.body, req.user.id);
 
     return res.status(201).json({
@@ -90,6 +95,11 @@ export const createBudget = asyncHandler(
 // @access  Private
 export const updateBudget = asyncHandler(
   async (req: AuthRequest, res: Response) => {
+    log.budget("updateBudget", {
+      id: req.params.id,
+      body: req.body,
+      user: req.user.id,
+    });
     const budget = await BudgetService.updateBudget(
       req.params.id,
       req.body,
@@ -108,6 +118,7 @@ export const updateBudget = asyncHandler(
 // @access  Private
 export const deleteBudget = asyncHandler(
   async (req: AuthRequest, res: Response) => {
+    log.budget("deleteBudget", { id: req.params.id, user: req.user.id });
     await BudgetService.deleteBudget(req.params.id, req.user.id);
 
     return res.status(200).json({
