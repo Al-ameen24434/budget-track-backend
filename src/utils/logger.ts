@@ -8,7 +8,8 @@ const logFormat = printf(({ level, message, timestamp, stack }) => {
 
 const transports: winston.transport[] = [new winston.transports.Console()];
 
-if (process.env.NODE_ENV !== "production") {
+// Only allow file logs locally
+if (process.env.NODE_ENV === "development") {
   transports.push(
     new winston.transports.File({
       filename: "logs/error.log",
@@ -30,7 +31,8 @@ export const logger = winston.createLogger({
   transports,
 });
 
-if (process.env.NODE_ENV !== "production") {
+// only local
+if (process.env.NODE_ENV === "development") {
   logger.exceptions.handle(
     new winston.transports.File({ filename: "logs/exceptions.log" }),
   );
