@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { Category } from "../models/category.model";
 import { asyncHandler } from "../utils/helpers";
 import { logger } from "../utils/logger";
+import { log } from "../utils/debug";
 
 interface AuthRequest extends Request {
   user?: any;
@@ -32,6 +33,10 @@ const defaultCategories = [
 export const getCategories = asyncHandler(
   async (req: AuthRequest, res: Response) => {
     const { type } = req.query;
+    log.category("getCategories request", {
+      query: req.query,
+      user: req.user.id,
+    });
 
     const query: any = { userId: req.user.id };
     if (type) {
@@ -78,6 +83,7 @@ export const getCategory = asyncHandler(
 // @access  Private
 export const createCategory = asyncHandler(
   async (req: AuthRequest, res: Response) => {
+    log.category("createCategory", { body: req.body, user: req.user.id });
     const category = await Category.create({
       ...req.body,
       userId: req.user.id,
@@ -97,6 +103,11 @@ export const createCategory = asyncHandler(
 // @access  Private
 export const updateCategory = asyncHandler(
   async (req: AuthRequest, res: Response) => {
+    log.category("updateCategory", {
+      id: req.params.id,
+      body: req.body,
+      user: req.user.id,
+    });
     let category = await Category.findOne({
       _id: req.params.id,
       userId: req.user.id,
@@ -167,10 +178,10 @@ export const deleteCategory = asyncHandler(
 export const initializeDefaultCategories = asyncHandler(
   async (req: AuthRequest, res: Response) => {
     // Check if user already has categories
+    log.category("initializeDefaultCategories", { user: req.user.id });
     const existingCategories = await Category.countDocuments({
       userId: req.user.id,
     });
-
     if (existingCategories > 0) {
       return res.status(400).json({
         success: false,
