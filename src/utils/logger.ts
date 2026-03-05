@@ -6,6 +6,20 @@ const logFormat = printf(({ level, message, timestamp, stack }) => {
   return `${timestamp} ${level}: ${stack || message}`;
 });
 
+const transports: winston.transport[] = [new winston.transports.Console()];
+
+if (process.env.NODE_ENV !== "production") {
+  transports.push(
+    new winston.transports.File({
+      filename: "logs/error.log",
+      level: "error",
+    }),
+    new winston.transports.File({
+      filename: "logs/combined.log",
+    }),
+  );
+}
+
 export const logger = winston.createLogger({
   level: process.env.LOG_LEVEL || "info",
   format: combine(
@@ -13,23 +27,15 @@ export const logger = winston.createLogger({
     colorize(),
     logFormat,
   ),
-  transports: [
-    new winston.transports.Console(),
-    new winston.transports.File({ filename: "logs/error.log", level: "error" }),
-    new winston.transports.File({ filename: "logs/combined.log" }),
-  ],
-  exceptionHandlers: [
-    new winston.transports.File({ filename: "logs/exceptions.log" }),
-  ],
-  rejectionHandlers: [
-    new winston.transports.File({ filename: "logs/rejections.log" }),
-  ],
+  transports,
 });
 
 if (process.env.NODE_ENV !== "production") {
-  logger.add(
-    new winston.transports.Console({
-      format: combine(colorize(), logFormat),
-    }),
+  logger.exceptions.handle(
+    new winston.transports.File({ filename: "logs/exceptions.log" }),
+  );
+
+  logger.rejections.handle(
+    new winston.transports.File({ filename: "logs/rejections.log" }),
   );
 }
