@@ -30,8 +30,34 @@ if (process.env.NODE_ENV === "development") {
   setupSwagger(app);
 }
 
-// Connect to database
-connectDatabase();
+// Connect to database - moved to a lazy connection approach for serverless
+let isConnected = false;
+
+const ensureDatabaseConnection = async () => {
+  if (!isConnected) {
+    try {
+      await connectDatabase();
+      isConnected = true;
+    } catch (error) {
+      logger.error(`Database connection failed: ${error}`);
+      throw error;
+    }
+  }
+};
+
+// Middleware to ensure database connection before handling requests
+app.use(async (req, res, next) => {
+  try {
+    await ensureDatabaseConnection();
+    next();
+  } catch (error) {
+    logger.error(`Database connection error: ${error}`);
+    res.status(500).json({
+      success: false,
+      message: "Database connection failed",
+    });
+  }
+});
 
 // Security middleware
 app.use(helmet());
