@@ -62,9 +62,7 @@
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.1.6"
   },
-  "engines": {
-    "node": ">=18.0.0"
-  },
+ 
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Al-ameen24434/budget-track-backend.git"
