@@ -4,6 +4,12 @@ import { log } from "../utils/debug";
 
 export const connectDatabase = async (): Promise<void> => {
   try {
+    // Check if already connected
+    if (mongoose.connection.readyState === 1) {
+      log.db("MongoDB already connected");
+      return;
+    }
+
     const mongoUri =
       process.env.NODE_ENV === "test"
         ? process.env.MONGODB_URI_TEST
@@ -34,7 +40,7 @@ export const connectDatabase = async (): Promise<void> => {
     });
   } catch (error) {
     logger.error(`Failed to connect to MongoDB: ${error}`);
-    process.exit(1);
+    throw error; // Let the error propagate instead of exiting
   }
 };
 
