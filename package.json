@@ -2,7 +2,7 @@
   "name": "budget-tracker-backend",
   "version": "1.0.0",
   "description": "Budget Tracker Backend API",
-  "main": "dist/server.js",
+  "main": "api/index.js",
   "scripts": {
     "dev": "nodemon src/server.ts",
     "build": "tsc",
