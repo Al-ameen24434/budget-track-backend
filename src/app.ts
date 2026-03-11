@@ -46,7 +46,7 @@ const ensureDatabaseConnection = async () => {
 };
 
 // Middleware to ensure database connection before handling requests
-app.use(async (req, res, next) => {
+app.use(async (_req, res, next) => {
   try {
     await ensureDatabaseConnection();
     next();
