@@ -31,13 +31,12 @@ if (process.env.NODE_ENV === "development") {
 }
 
 // Connect to database - moved to a lazy connection approach for serverless
-let isConnected = false;
-
 const ensureDatabaseConnection = async () => {
-  if (!isConnected) {
+  if (!app.locals.isConnected) {
     try {
       await connectDatabase();
-      isConnected = true;
+      app.locals.isConnected = true;
+      logger.info("Database connected successfully");
     } catch (error) {
       logger.error(`Database connection failed: ${error}`);
       throw error;
