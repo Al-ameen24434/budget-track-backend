@@ -28,7 +28,7 @@ export default async function handler(req: any, res: any) {
     res.status(500).json({
       success: false,
       message: "Internal server error",
-      error: process.env.NODE_ENV === "development" ? error.message : undefined,
+      error: process.env.NODE_ENV === "development" && error && typeof error === "object" && "message" in error ? (error as { message: string }).message : undefined,
     });
   }
 }
