@@ -1,7 +1,7 @@
 import { Express } from "express";
+import swaggerUi from "swagger-ui-express";
+import swaggerSpec from "./swagger.json";
 
-export const setupSwagger = (_app: Express): void => {
-  // Swagger setup is handled via JSDoc comments in route files
-  // The docs will be available at /api-docs once configured with swagger-jsdoc
-  console.log("Swagger documentation enabled through JSDoc annotations");
+export const setupSwagger = (app: Express): void => {
+  app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 };

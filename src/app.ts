@@ -67,9 +67,7 @@ log.middleware(
   `✓ CORS middleware registered with origin: ${corsOptions.origin}`,
 );
 
-if (process.env.NODE_ENV === "development") {
-  setupSwagger(app);
-}
+setupSwagger(app);
 
 // Rate limiting
 const limiter = rateLimit({
