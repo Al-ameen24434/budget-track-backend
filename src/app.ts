@@ -26,10 +26,6 @@ const app = express();
 // Log middleware registration
 log.middleware("Registering middleware...");
 
-if (process.env.NODE_ENV === "development") {
-  setupSwagger(app);
-}
-
 // Connect to database - moved to a lazy connection approach for serverless
 const ensureDatabaseConnection = async () => {
   if (!app.locals.isConnected) {
@@ -81,7 +77,7 @@ const limiter = rateLimit({
   max: 100, // limit each IP to 100 requests per windowMs
   message: "Too many requests from this IP, please try again later.",
 });
-app.use("/api/", limiter);
+app.use("/api", limiter);
 log.middleware("✓ Rate limiting middleware registered");
 
 // Body parsing middleware
@@ -105,16 +101,12 @@ if (process.env.NODE_ENV === "development" || process.env.DEBUG) {
 }
 
 // API Routes
-const apiPrefix = process.env.API_PREFIX || "/api/v1";
+const apiPrefix = process.env.API_PREFIX || "/api";
 app.use(`${apiPrefix}/auth`, authRoutes);
 app.use(`${apiPrefix}/transactions`, transactionRoutes);
 app.use(`${apiPrefix}/categories`, categoryRoutes);
 app.use(`${apiPrefix}/budgets`, budgetRoutes);
 app.use(`${apiPrefix}/analytics`, analyticsRoutes);
-
-if (process.env.NODE_ENV === "development") {
-  setupSwagger(app);
-}
 
 // Health check endpoint
 app.get("/health", (_req, res) => {
