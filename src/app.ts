@@ -8,7 +8,7 @@ import { config } from "dotenv";
 import { connectDatabase } from "./config/database";
 import { errorHandler } from "./middleware/error.middleware";
 import { logger } from "./utils/logger";
-import { setupSwagger } from "./docs/swagger";
+import { setupSwagger } from "./docs/swaggerSetup";
 import { log, logRequest, logResponse } from "./utils/debug";
 
 // Load environment variables
@@ -26,31 +26,26 @@ const app = express();
 // Log middleware registration
 log.middleware("Registering middleware...");
 
-// Connect to database - moved to a lazy connection approach for serverless
-const ensureDatabaseConnection = async () => {
-  if (!app.locals.isConnected) {
-    try {
-      await connectDatabase();
-      app.locals.isConnected = true;
-      logger.info("Database connected successfully");
-    } catch (error) {
-      logger.error(`Database connection failed: ${error}`);
+// Single shared connection promise — prevents parallel reconnect attempts
+let dbConnection: Promise<void> | null = null;
+
+const ensureDatabaseConnection = () => {
+  if (!dbConnection) {
+    dbConnection = connectDatabase().catch((error) => {
+      dbConnection = null; // reset so next request retries
       throw error;
-    }
+    });
   }
+  return dbConnection;
 };
 
-// Middleware to ensure database connection before handling requests
 app.use(async (_req, res, next) => {
   try {
     await ensureDatabaseConnection();
     next();
   } catch (error) {
     logger.error(`Database connection error: ${error}`);
-    res.status(500).json({
-      success: false,
-      message: "Database connection failed",
-    });
+    res.status(500).json({ success: false, message: "Database connection failed" });
   }
 });
 
@@ -98,13 +93,11 @@ if (process.env.NODE_ENV === "development" || process.env.DEBUG) {
   app.use(logResponse);
 }
 
-// API Routes
-const apiPrefix = process.env.API_PREFIX || "/api";
-app.use(`${apiPrefix}/auth`, authRoutes);
-app.use(`${apiPrefix}/transactions`, transactionRoutes);
-app.use(`${apiPrefix}/categories`, categoryRoutes);
-app.use(`${apiPrefix}/budgets`, budgetRoutes);
-app.use(`${apiPrefix}/analytics`, analyticsRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/transactions", transactionRoutes);
+app.use("/api/categories", categoryRoutes);
+app.use("/api/budgets", budgetRoutes);
+app.use("/api/analytics", analyticsRoutes);
 
 // Health check endpoint
 app.get("/health", (_req, res) => {
