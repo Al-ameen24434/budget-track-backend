@@ -5,7 +5,7 @@ WORKDIR /app
 COPY package*.json ./
 COPY tsconfig.json ./
 
-RUN npm ci --only=production
+RUN npm ci
 
 COPY . .
 
@@ -28,4 +28,4 @@ EXPOSE 5000
 
 ENV NODE_ENV=production
 
-CMD ["node", "dist/server.js"]
+CMD ["node", "dist/src/server.js"]
