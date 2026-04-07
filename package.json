@@ -5,9 +5,8 @@
   "main": "api/index.js",
   "scripts": {
     "dev": "nodemon src/server.ts",
-    "generate-swagger": "ts-node scripts/generate-swagger.ts",
-    "build": "npm run generate-swagger && tsc",
-    "start": "node dist/server.js",
+    "build": "tsc",
+    "start": "node dist/src/server.js",
     "test": "jest",
     "test:watch": "jest --watch",
     "lint": "eslint src/**/*.ts",
