@@ -1,51 +1,56 @@
-# Budget Tracker Backend
+# 💰 Budget Tracker API
 
-Simple REST API for managing budgets, categories and transactions.
+A production-ready RESTful API for personal finance management built with Node.js, Express, TypeScript, and MongoDB. Track income, expenses, manage budgets, and gain insights with advanced analytics.
 
-## Debugging 🐞
+[![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](https://nodejs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.1.6-blue)](https://www.typescriptlang.org/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-7.5.0-green)](https://www.mongodb.com/)
+[![Express](https://img.shields.io/badge/Express-4.18.2-lightgrey)](https://expressjs.com/)
+[![License](https://img.shields.io/badge/license-MIT-red)](LICENSE)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
 
-This project uses the [`debug`](https://www.npmjs.com/package/debug) package
-with a set of namespaces defined in `src/utils/debug.ts`. In development the
-library is enabled by default (`app*`), but you can control it with the
-`DEBUG` environment variable.
+## ✨ Features
 
-### Useful commands
+### Core Features
+- 🔐 **JWT Authentication** - Secure user authentication with token-based authorization
+- 💰 **Transaction Management** - Full CRUD operations for income and expenses
+- 🗂️ **Custom Categories** - Create, edit, and delete categories with custom icons and colors
+- 📊 **Budget Planning** - Set monthly budgets and track progress by category
+- 📈 **Advanced Analytics** - Spending trends, category breakdowns, and financial insights
+- 🔍 **Search & Filter** - Advanced filtering with pagination and sorting
+- 📱 **RESTful API** - Clean, consistent, and well-documented API endpoints
 
-```bash
-# start server with automatic reload
-npm run dev
+### Technical Features
+- ✅ **TypeScript** - Type-safe code for better reliability
+- 🚀 **High Performance** - Optimized database queries with indexes
+- 🔒 **Security First** - Helmet.js, CORS, rate limiting, and input sanitization
+- 🐳 **Docker Support** - Containerized application for easy deployment
+- 📝 **API Documentation** - Interactive Swagger/OpenAPI documentation
+- 🧪 **Testing Ready** - Jest and Supertest setup included
+- 📦 **Bulk Operations** - Import/export transactions in CSV/JSON format
 
-# enable verbose output from express/mongoose/jwt
-npm run dev:verbose
+## 🚀 Quick Start
 
-# start built code and break into debugger
-npm run debug
-```
+### Prerequisites
 
-### Middleware & helpers
+- Node.js 18+ or Docker
+- MongoDB 6+ (or MongoDB Atlas account)
+- npm or yarn package manager
 
-- `logRequest` / `logResponse` – attach to Express to dump headers, body,
-  query parameters, etc. These are automatically registered in
-  `src/app.ts` when running in development or when `DEBUG` is defined.
-- `logPerformance(label)` – measure and warn on slow operations.
-- `logMemory()` – print current memory usage to the debug logger.
+### Installation
 
-Set `DEBUG=app*` (or a narrower namespace such as `app:db`) to see output:
-
-```bash
-DEBUG=app* npm run dev
-```
-
-### Testing notes
-
-The Jest configuration uses a setup file (`src/tests/setup.ts`) which
-automatically connects to the in‑memory/test database and disables both
-Winston and `debug` output so test logs remain clean. You generally don't need
-to manage connections within individual spec files.
+#### Option 1: Docker (Recommended)
 
 ```bash
-npm test          # runs the suite with debugging turned off
-npm run test:watch
-```
+# Clone the repository
+git clone https://github.com/yourusername/budget-tracker-api.git
+cd budget-tracker-api
 
-More information about the `debug` package can be found on its npm page.
+# Copy environment variables
+cp .env.example .env
+
+# Start the application
+docker-compose up -d
+
+# Seed the database with sample data
+docker exec -it budget-tracker-backend npm run seed
